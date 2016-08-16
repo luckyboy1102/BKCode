@@ -1,20 +1,18 @@
 package com.totoro.bkcode;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
-import javax.print.Doc;
-
 public class GetMyCode {
 	
-	private static final String url = "https://www.tellburgerking.com.cn/";
+	private static final String url = "https://tellburgerking.com.cn/";
 	
 	public static void main(String[] args) {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -29,7 +27,7 @@ public class GetMyCode {
 
 		String[] array = input.split(",");
 		for (String code : array) {
-			Thread thread = new GetMyCodeThread(code);
+			Thread thread = new GetMyCodeThread(code, true);
 			thread.start();
 		}
 		
@@ -58,7 +56,7 @@ public class GetMyCode {
 		private void init() {
 			sender = new RequestSender();
 			
-			map = new HashMap<String, String>();
+			map = new HashMap<>();
 			map.put("JavaScriptEnabled", "1");
 			map.put("FIP", "True");
             map.put("AcceptCookies", "Y");
@@ -94,22 +92,23 @@ public class GetMyCode {
 			
 			//对首页进行解析
 			result = sender.execute(url);
-			suffix = getAction(result);
+            suffix = getAction(result);
             result = sender.execute(url + suffix, map);
 
-            map = new HashMap<String, String>();
+            map = new HashMap<>();
             map.put("JavaScriptEnabled", "1");
             map.put("FIP", "True");
             map.put("NextButton", "%E5%BC%80%E5%A7%8B");
             splitCode();
 
+            result = sender.execute(url, map);
             suffix = getAction(result);
 
 			do {
 				result = sender.execute(url + suffix, map);
 				
 				//构造新的请求参数
-				map = new HashMap<String, String>();
+				map = new HashMap<>();
 				
 				Document doc = Jsoup.parse(result);
 				Element element = doc.getElementById("surveyForm");
